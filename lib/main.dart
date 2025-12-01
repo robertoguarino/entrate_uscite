@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'pages/HomePage.dart';
+import 'services/movimenti_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -15,11 +18,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 ID utente temporaneo (sostituibile con login in seguito)
+    const userId = "demo-user";
+
+    final service = MovimentiService(userId);
+    
     return MaterialApp(
       title: "Giornale Contabile",
-      home: Scaffold(
-        body: Center(child: Text("Firebase OK")),
-      ),
+      home: HomePage(service: service),
+      // home: Scaffold(
+      //   body: Center(child: Text("Firebase OK")),
+        
+      // ),
     );
   }
 }

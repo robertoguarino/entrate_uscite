@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'entrate-uscite-47b9e.firebasestorage.app',
     iosBundleId: 'com.example.entrateUscite',
   );
+
 }
