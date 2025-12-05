@@ -14,6 +14,9 @@ class MovimentiService {
   Future<void> aggiungi(Movimento m) async {
     print("📌 userId = $userId");
     print("📌 documento = ${m.id}");
+
+    print("📁 Collection path = ${_col.path}");
+    print("➡️ Provo a salvare...");
   
     try {
       await _col.doc(m.id).set(m.toMap());
