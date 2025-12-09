@@ -18,9 +18,17 @@ class HomePage extends StatelessWidget {
       body: StreamBuilder<List<Movimento>>(
         stream: service.streamMovimenti(),
         builder: (context, snapshot) {
+          print("Stato connessione: ${snapshot.connectionState}");
+          if (snapshot.hasError) {
+            // Stampa l'errore per vederlo nel terminale macOS
+            print("ERRORE FIRESTORE SU MACOS: ${snapshot.error}"); 
+            return Center(child: Text("Errore: ${snapshot.error}"));
+          }
+          
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-
+          
           final movimenti = snapshot.data!;
+          
           final saldo = movimenti.fold<double>(0, (p, m) => p + (m.entrata ? m.importo : -m.importo));
 
           return Column(

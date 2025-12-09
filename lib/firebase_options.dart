@@ -17,26 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -59,11 +50,38 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAJkKvaQMdsEBovVF8uNJw_xQRw3ka_peE',
-    appId: '1:933744392266:ios:9e65ace2af9f02ec870eb3',
+    appId: '1:933744392266:ios:7d4c823f8f48f944870eb3',
     messagingSenderId: '933744392266',
     projectId: 'entrate-uscite-47b9e',
     storageBucket: 'entrate-uscite-47b9e.firebasestorage.app',
     iosBundleId: 'com.example.entrateUscite',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAdZEa6D2swzVNnykDfkCUbNRMRJZ1dr5k',
+    appId: '1:933744392266:web:df674b8f08da563b870eb3',
+    messagingSenderId: '933744392266',
+    projectId: 'entrate-uscite-47b9e',
+    authDomain: 'entrate-uscite-47b9e.firebaseapp.com',
+    storageBucket: 'entrate-uscite-47b9e.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyAJkKvaQMdsEBovVF8uNJw_xQRw3ka_peE',
+    appId: '1:933744392266:ios:7d4c823f8f48f944870eb3',
+    messagingSenderId: '933744392266',
+    projectId: 'entrate-uscite-47b9e',
+    storageBucket: 'entrate-uscite-47b9e.firebasestorage.app',
+    iosBundleId: 'com.example.entrateUscite',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAdZEa6D2swzVNnykDfkCUbNRMRJZ1dr5k',
+    appId: '1:933744392266:web:2cbbd4b9907f8d69870eb3',
+    messagingSenderId: '933744392266',
+    projectId: 'entrate-uscite-47b9e',
+    authDomain: 'entrate-uscite-47b9e.firebaseapp.com',
+    storageBucket: 'entrate-uscite-47b9e.firebasestorage.app',
   );
 
 }

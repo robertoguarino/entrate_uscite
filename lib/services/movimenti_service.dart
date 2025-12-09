@@ -33,7 +33,9 @@ class MovimentiService {
   }
 
   Stream<List<Movimento>> streamMovimenti() {
+  
     return _col.orderBy("data", descending: true).snapshots().map((snap) {
+      
       return snap.docs.map((doc) {
         return Movimento.fromMap(doc.id, doc.data() as Map<String, dynamic>);
       }).toList();

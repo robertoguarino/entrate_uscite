@@ -7,10 +7,19 @@ import 'services/movimenti_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  // await Firebase.initializeApp(
+  //   options: DefaultFirebaseOptions.currentPlatform,
     
-  );
+  // );
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase inizializzato con successo!");
+  } catch (e) {
+    print("Errore durante l'inizializzazione di Firebase: $e");
+  }
 
   
   runApp(const MyApp());
