@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'pages/HomePage.dart';
+//import 'pages/HomePage.dart';
+import 'pages/HomeEntrateUscitePage.dart';
 import 'services/movimenti_service.dart';
 
 void main() async {
@@ -37,7 +38,11 @@ class MyApp extends StatelessWidget {
     
     return MaterialApp(
       title: "Giornale Contabile",
-      home: HomePage(service: service),
+      home: HomeEntrateUscitePage(
+        cassaIniziale: 1000.00,
+        transazioni: [],
+      ),
+      //home: HomePage(service: service),
       // home: Scaffold(
       //   body: Center(child: Text("Firebase OK")),
         
