@@ -4,9 +4,19 @@ import 'firebase_options.dart';
 //import 'pages/HomePage.dart';
 import 'pages/HomeEntrateUscitePage.dart';
 import 'services/movimenti_service.dart';
+import 'dart:io';
+import 'package:window_size/window_size.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+    setWindowMinSize(const Size(800, 700));   // ← MINIMO CONSIGLIATO
+    // setWindowMaxSize(const Size.infinite);     // ← nessun limite massimo
+
+    // 2️⃣ imposta dimensione iniziale REALE
+    setWindowFrame(const Rect.fromLTWH(200, 150, 800, 700));
+  }
   
   // await Firebase.initializeApp(
   //   options: DefaultFirebaseOptions.currentPlatform,
@@ -39,8 +49,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: "Giornale Contabile",
       home: HomeEntrateUscitePage(
-        cassaIniziale: 1000.00,
-        transazioni: [],
+        // cassaIniziale: 1000.00,
+        // transazioni: [],
+        service: service
       ),
       //home: HomePage(service: service),
       // home: Scaffold(

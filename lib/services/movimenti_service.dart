@@ -9,7 +9,7 @@ class MovimentiService {
 
 
   CollectionReference get _col =>
-      _db.collection("users").doc(userId).collection("movimenti");
+      _db.collection("users").doc(userId).collection("movimentidev");
 
   Future<void> aggiungi(Movimento m) async {
     print("📌 userId = $userId");

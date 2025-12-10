@@ -81,7 +81,7 @@ class HomePage extends StatelessWidget {
     String? categoriaSelezionata;
     DateTime dataSelezionata = DateTime.now();
 
-    showDialog(
+      (
       context: context,
       builder: (ctx) {
         return StatefulBuilder(

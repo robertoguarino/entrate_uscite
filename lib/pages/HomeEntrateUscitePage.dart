@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../models/movimento.dart';
+import '../services/movimenti_service.dart';
+import './NuovaTransazioneDialog.dart';
+import './CassaDialog.dart';
 
 class HomeEntrateUscitePage extends StatelessWidget {
-  final double cassaIniziale;
-  final List<Transazione> transazioni;
+
+  final MovimentiService service;
 
   const HomeEntrateUscitePage({
     super.key,
-    required this.cassaIniziale,
-    required this.transazioni,
+    required this.service,
   });
 
   @override
@@ -38,12 +41,14 @@ class HomeEntrateUscitePage extends StatelessWidget {
                 children: [
                   const SizedBox(),
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: () => apriNuovaTransazioneDialog(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A73E8),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 16),
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -71,26 +76,29 @@ class HomeEntrateUscitePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Cassa Iniziale",
+                      "Cassa",
                       style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                          fontWeight: FontWeight.w600),
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          "€ ${cassaIniziale.toStringAsFixed(2)}",
+                          // "€ ${cassaIniziale.toStringAsFixed(2)}",
+                          "€ 0",
                           style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87),
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () => apriCassaDialog(context),
                           child: const Text(
                             "Modifica",
                             style: TextStyle(
@@ -99,7 +107,7 @@ class HomeEntrateUscitePage extends StatelessWidget {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                        )
+                        ),
                       ],
                     ),
                   ],
@@ -112,9 +120,24 @@ class HomeEntrateUscitePage extends StatelessWidget {
               _buildTableHeader(),
 
               Expanded(
-                child: transazioni.isEmpty
-                    ? _buildEmptyMessage()
-                    : _buildTransazioniList(),
+                child: StreamBuilder<List<Movimento>>(
+                  stream: service.streamMovimenti(), // ≤≤≤ STREAM FIRESTORE
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return _buildEmptyMessage();
+                    }
+
+                    final lista = snapshot.data!;
+
+                    return ListView(
+                      children: lista.map(_buildMovimentoRow).toList(),
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -131,29 +154,58 @@ class HomeEntrateUscitePage extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text("Data",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text("Data", style: TextStyle(fontWeight: FontWeight.w600)),
           ),
           Expanded(
             flex: 4,
-            child: Text("Descrizione",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(
+              "Descrizione",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
           Expanded(
             flex: 2,
-            child: Text("Entrate",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(
+              "Entrate",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
           Expanded(
             flex: 2,
-            child: Text("Uscite",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(
+              "Uscite",
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
           Expanded(
             flex: 2,
-            child: Text("Saldo",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            child: Text("Saldo", style: TextStyle(fontWeight: FontWeight.w600)),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMovimentoRow(Movimento m) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F6FF),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Expanded(flex: 2, child: Text(m.data.toString())),
+          Expanded(flex: 4, child: Text(m.descrizione)),
+          Expanded(
+            flex: 2,
+            child: Text(m.entrata != null ? "€ ${m.entrata}" : "-"),
+          ),
+          Expanded(flex: 2, child: Text(m.importo.toString())),
+          // Expanded(flex: 2, child: Text(m.uscita != null ? "€ ${m.uscita}" : "-")),
+          Expanded(flex: 2, child: Text("€ 0")),
+          // Expanded(flex: 2, child: Text("€ ${m.saldo.toStringAsFixed(2)}")),
         ],
       ),
     );
@@ -171,52 +223,98 @@ class HomeEntrateUscitePage extends StatelessWidget {
   }
 
   // LISTA TRANSAZIONI
-  Widget _buildTransazioniList() {
-    return ListView(
-      children: transazioni.map((t) => _buildTransazioneRow(t)).toList(),
-    );
-  }
+  // Widget _buildTransazioniList() {
+  //   return ListView(
+  //     children: transazioni.map((t) => _buildTransazioneRow(t)).toList(),
+  //   );
+  // }
 
   // RIGA TRANSAZIONE
-  Widget _buildTransazioneRow(Transazione t) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F6FF),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(flex: 2, child: Text(t.data ?? "-")),
-          Expanded(flex: 4, child: Text(t.descrizione)),
-          Expanded(
-              flex: 2,
-              child: Text(t.entrata != null ? "€ ${t.entrata}" : "-")),
-          Expanded(
-              flex: 2,
-              child: Text(t.uscita != null ? "€ ${t.uscita}" : "-")),
-          Expanded(
-              flex: 2,
-              child: Text("€ ${t.saldo?.toStringAsFixed(2) ?? "-"}")),
-        ],
-      ),
+  // Widget _buildTransazioneRow(Transazione t) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+  //     decoration: BoxDecoration(
+  //       color: const Color(0xFFF1F6FF),
+  //       borderRadius: BorderRadius.circular(8),
+  //     ),
+  //     margin: const EdgeInsets.only(bottom: 8),
+  //     child: Row(
+  //       children: [
+  //         Expanded(flex: 2, child: Text(t.data ?? "-")),
+  //         Expanded(flex: 4, child: Text(t.descrizione)),
+  //         Expanded(
+  //             flex: 2,
+  //             child: Text(t.entrata != null ? "€ ${t.entrata}" : "-")),
+  //         Expanded(
+  //             flex: 2,
+  //             child: Text(t.uscita != null ? "€ ${t.uscita}" : "-")),
+  //         Expanded(
+  //             flex: 2,
+  //             child: Text("€ ${t.saldo?.toStringAsFixed(2) ?? "-"}")),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  void apriNuovaTransazioneDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(32), // distanza dai bordi esterni
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 380, // LARGHEZZA FISSA
+              minWidth: 380,
+              maxHeight: 650, // non cresce troppo
+            ),
+            child: const NuovaTransazioneDialog(),
+          ),
+        );
+      },
+    );
+  }
+
+  void apriCassaDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(32), // distanza dai bordi esterni
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 380, // LARGHEZZA FISSA
+              minWidth: 380,
+              maxHeight: 650, // non cresce troppo
+            ),
+            child: const CassaDialog(),
+          ),
+        );
+      },
     );
   }
 }
 
-class Transazione {
-  final String? data;
-  final String descrizione;
-  final double? entrata;
-  final double? uscita;
-  final double? saldo;
+// class Transazione {
+//   final String? data;
+//   final String descrizione;
+//   final double? entrata;
+//   final double? uscita;
+//   final double? saldo;
 
-  Transazione({
-    this.data,
-    required this.descrizione,
-    this.entrata,
-    this.uscita,
-    this.saldo,
-  });
-}
+//   Transazione({
+//     this.data,
+//     required this.descrizione,
+//     this.entrata,
+//     this.uscita,
+//     this.saldo,
+//   });
+// }
