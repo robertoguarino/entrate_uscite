@@ -216,6 +216,7 @@ class _CassaDialogState extends State<CassaDialog> {
                 ),
                 onPressed: () {
                   // TODO: salva su Firestore
+                  print("p");
                   Navigator.pop(context);
                 },
                 child: const Text(
