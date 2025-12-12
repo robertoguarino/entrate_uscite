@@ -200,7 +200,7 @@ class HomeEntrateUscitePage extends StatelessWidget {
           Expanded(flex: 4, child: Text(m.descrizione)),
           Expanded(
             flex: 2,
-            child: Text(m.entrata != null ? "€ ${m.entrata}" : "-"),
+            child: Text("€ ${m.entrata}"),
           ),
           Expanded(flex: 2, child: Text(m.importo.toString())),
           // Expanded(flex: 2, child: Text(m.uscita != null ? "€ ${m.uscita}" : "-")),
