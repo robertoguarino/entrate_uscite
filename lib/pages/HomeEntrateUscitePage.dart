@@ -102,15 +102,26 @@ class HomeEntrateUscitePage extends StatelessWidget {
                         color: Colors.white.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "Cassa non impostata",
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                           ),
-                          SizedBox(height: 8),
-                          Text("Imposta la cassa iniziale con l’icona ✏️"),
+                          const SizedBox(height: 8),
+                          // Text("Imposta la cassa iniziale con l’icona ✏️"),
+                          GestureDetector(
+                            onTap: () => apriCassaDialog(context, service),
+                            child: const Text(
+                              "Inserisci",
+                              style: TextStyle(
+                                color: Color(0xFF1A73E8),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     );
