@@ -69,46 +69,6 @@ class _CassaDialogState extends State<CassaDialog> {
               }
 
               return const SizedBox.shrink();
-
-              // puoi mostrare opzionalmente un “riassunto”
-              // if (snapshot.connectionState == ConnectionState.waiting) {
-              //   return const Padding(
-              //     padding: EdgeInsets.only(bottom: 12),
-              //     child: Center(child: CircularProgressIndicator()),
-              //   );
-              // }
-
-              // if (cassa == null) {
-              //   return const Padding(
-              //     padding: EdgeInsets.only(bottom: 12),
-              //     child: Text("Cassa non impostata", style: TextStyle(color: Colors.black54)),
-              //   );
-              // }
-
-             
-
-              // return Container(
-              //   margin: const EdgeInsets.only(bottom: 12),
-              //   padding: const EdgeInsets.all(12),
-              //   decoration: BoxDecoration(
-              //     color: const Color(0xFFF1F6FF),
-              //     borderRadius: BorderRadius.circular(12),
-              //     border: Border.all(color: Colors.black12),
-              //   ),
-              //   child: Row(
-              //     children: [
-              //       Expanded(flex: 2, child: Text(DateFormat("dd/MM/yyyy").format(cassa.data))),
-              //       Expanded(flex: 4, child: Text("Cassa", style: const TextStyle(fontWeight: FontWeight.w600))),
-              //       Expanded(
-              //         flex: 3,
-              //         child: Align(
-              //           alignment: Alignment.centerRight,
-              //           child: Text("€ ${cassa.importo.toStringAsFixed(2)}"),
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // );
             },
           ),
 

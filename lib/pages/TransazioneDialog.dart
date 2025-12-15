@@ -27,6 +27,20 @@ class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
   bool get isModifica => widget.movimento != null;
 
   @override
+  void initState() {
+    super.initState();
+
+    final m = widget.movimento;
+    if (m != null) {
+      data = m.data;
+      isEntrata = m.entrata;
+      descrizioneCtrl.text = m.descrizione;
+      importoCtrl.text = m.importo.toStringAsFixed(2);
+      _prefillDone = true;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -252,19 +266,46 @@ class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
                   // TODO: salva su Firestore
                   final importo = double.tryParse(importoCtrl.text.replaceAll(',', '.')) ?? 0;
 
-                  final nuovo = Movimento(
-                    id: DateTime.now().microsecondsSinceEpoch.toString(),
-                    descrizione: descrizioneCtrl.text,
-                    importo: importo,
-                    data: data,
-                    entrata: isEntrata,
-                    categoria: descrizioneCtrl.text,
-                  );
+                  final isModifica = widget.movimento != null;
 
-                  //print(nuovo.toMap());
-                  await widget.service.aggiungi(nuovo);
+                    final movimentoDaSalvare = Movimento(
+                      // ✅ se modifica: mantieni lo stesso id, altrimenti creane uno nuovo
+                      id: isModifica
+                          ? widget.movimento!.id
+                          : DateTime.now().microsecondsSinceEpoch.toString(),
 
-                  Navigator.pop(context);
+                      descrizione: descrizioneCtrl.text,
+                      importo: importo,
+                      data: data,
+                      entrata: isEntrata,
+
+                      // ⚠️ qui probabilmente NON vuoi usare la descrizione come categoria
+                      categoria: isModifica
+                          ? widget.movimento!.categoria
+                          : "varie", // oppure un dropdown categoria
+                    );
+
+                    if (isModifica) {
+                      await widget.service.aggiorna(movimentoDaSalvare); // <-- crea questo metodo
+                    } else {
+                      await widget.service.aggiungi(movimentoDaSalvare);
+                    }
+
+                    if (mounted) Navigator.pop(context);
+
+                  // final nuovo = Movimento(
+                  //   id: DateTime.now().microsecondsSinceEpoch.toString(),
+                  //   descrizione: descrizioneCtrl.text,
+                  //   importo: importo,
+                  //   data: data,
+                  //   entrata: isEntrata,
+                  //   categoria: descrizioneCtrl.text,
+                  // );
+
+                  // //print(nuovo.toMap());
+                  // await widget.service.aggiungi(nuovo);
+
+                  // Navigator.pop(context);
                 },
                 child: const Text(
                   "Salva",

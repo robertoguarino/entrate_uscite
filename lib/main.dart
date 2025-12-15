@@ -44,14 +44,19 @@ class MyApp extends StatelessWidget {
     // 🔥 ID utente temporaneo (sostituibile con login in seguito)
     const userId = "demo-user";
 
+
+    // final service = MovimentiService(userId, env: env);
     final service = MovimentiService(userId);
+    final w = MediaQuery.of(context).size.width;
+    final isMobile = w < 700;
     
     return MaterialApp(
       title: "Giornale Contabile",
       home: HomeEntrateUscitePage(
         // cassaIniziale: 1000.00,
         // transazioni: [],
-        service: service
+        service: service,
+        isMobile: isMobile,
       ),
       //home: HomePage(service: service),
       // home: Scaffold(
