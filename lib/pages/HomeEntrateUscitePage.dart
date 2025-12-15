@@ -331,10 +331,9 @@ class HomeEntrateUscitePage extends StatelessWidget {
                 ),
               ],
             ),
-            
-            const SizedBox(height: 8),
             Row(
               children: [
+                
                 Expanded(
                   child: Text(
                     m.entrata
@@ -344,8 +343,20 @@ class HomeEntrateUscitePage extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                
                 ),
-                const SizedBox(width: 10),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    ""
+                  ),
+                ),
+                const SizedBox(width: 5),
                 Text("Saldo: € ${saldo.toStringAsFixed(2)}",
                     style: const TextStyle(fontWeight: FontWeight.w600)),
                 IconButton(
