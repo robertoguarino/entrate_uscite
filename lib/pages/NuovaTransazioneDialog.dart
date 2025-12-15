@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/movimento.dart';
+import '../services/movimenti_service.dart';
 
 class NuovaTransazioneDialog extends StatefulWidget {
-  const NuovaTransazioneDialog({super.key});
+
+  final MovimentiService service;
+  final Movimento? movimento;
+  // final String idMovimento;
+
+  const NuovaTransazioneDialog({super.key, required this.service, this.movimento,});
+  
 
   @override
   State<NuovaTransazioneDialog> createState() => _NuovaTransazioneDialogState();
@@ -11,9 +19,12 @@ class NuovaTransazioneDialog extends StatefulWidget {
 class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
   DateTime data = DateTime.now();
   bool isEntrata = true;
+  bool _prefillDone = false;
 
   final descrizioneCtrl = TextEditingController();
   final importoCtrl = TextEditingController(text: "0.00");
+
+  bool get isModifica => widget.movimento != null;
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +38,8 @@ class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Nuova Transazione",
+              Text(
+                (isModifica ? "Modifica transazione" : "Nuova transazione"),
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
@@ -42,6 +53,29 @@ class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
           ),
 
           const SizedBox(height: 24),
+
+          // leggo da firebase l'importo della cassa
+          // StreamBuilder<Movimento?>(
+          //   stream: widget.service.trovaPerId(), // deve leggere doc('cassa')
+          //   builder: (context, snapshot) {
+          //     final movimenti = snapshot.data;
+
+          //     // ✅ Precompila UNA SOLA VOLTA quando arriva la cassa
+          //     if (!_prefillDone && movimenti != null) {
+          //       _prefillDone = true;
+          //       WidgetsBinding.instance.addPostFrameCallback((_) {
+          //         if (!mounted) return;
+          //         setState(() {
+          //           data = movimenti.data;
+          //           isEntrata = cassa.entrata;
+          //           importoCtrl.text = movimenti.importo.toStringAsFixed(2);
+          //         });
+          //       });
+          //     }
+
+          //     return const SizedBox.shrink();
+          //   },
+          // ),
 
           // DATA
           const Text(
@@ -214,8 +248,22 @@ class _NuovaTransazioneDialogState extends State<NuovaTransazioneDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   // TODO: salva su Firestore
+                  final importo = double.tryParse(importoCtrl.text.replaceAll(',', '.')) ?? 0;
+
+                  final nuovo = Movimento(
+                    id: DateTime.now().microsecondsSinceEpoch.toString(),
+                    descrizione: descrizioneCtrl.text,
+                    importo: importo,
+                    data: data,
+                    entrata: isEntrata,
+                    categoria: descrizioneCtrl.text,
+                  );
+
+                  //print(nuovo.toMap());
+                  await widget.service.aggiungi(nuovo);
+
                   Navigator.pop(context);
                 },
                 child: const Text(

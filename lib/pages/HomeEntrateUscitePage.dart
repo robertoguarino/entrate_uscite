@@ -1,20 +1,29 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import '../models/movimento.dart';
 import '../services/movimenti_service.dart';
 import './NuovaTransazioneDialog.dart';
 import './CassaDialog.dart';
+import 'package:intl/intl.dart';
 
 class HomeEntrateUscitePage extends StatelessWidget {
 
   final MovimentiService service;
+ 
 
   const HomeEntrateUscitePage({
     super.key,
     required this.service,
-  });
+
+  }
+  );
+  
 
   @override
   Widget build(BuildContext context) {
+
+    final cassaCtrl = TextEditingController(text: "0.00");
     return Scaffold(
       backgroundColor: const Color(0xFFF3F5F7),
       body: SafeArea(
@@ -41,7 +50,7 @@ class HomeEntrateUscitePage extends StatelessWidget {
                 children: [
                   const SizedBox(),
                   ElevatedButton.icon(
-                    onPressed: () => apriNuovaTransazioneDialog(context),
+                    onPressed: () => apriNuovaTransazioneDialog(context, service),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A73E8),
                       foregroundColor: Colors.white,
@@ -64,54 +73,70 @@ class HomeEntrateUscitePage extends StatelessWidget {
 
               const SizedBox(height: 20),
 
-              // CARD CASSA INIZIALE
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Cassa",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w600,
-                      ),
+              // leggo da firebase l'importo della cassa
+              StreamBuilder<Movimento?>(
+                stream: service.streamCassa(), // deve leggere doc('cassa')
+                builder: (context, snapshot) {
+
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+
+                  final cassa = snapshot.data;
+                  if(cassa != null) {
+                    cassaCtrl.text = cassa.importo.toStringAsFixed(2);
+                    
+                  }
+
+                  // CARD CASSA INIZIALE
+                  return  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    const SizedBox(height: 6),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          // "€ ${cassaIniziale.toStringAsFixed(2)}",
-                          "€ 0",
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black87,
+                        const Text(
+                          "Cassa",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          onTap: () => apriCassaDialog(context),
-                          child: const Text(
-                            "Modifica",
-                            style: TextStyle(
-                              color: Color(0xFF1A73E8),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                        const SizedBox(height: 6),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              // "€ ${cassaIniziale.toStringAsFixed(2)}",
+                              //"€ 0",
+                              "€ ${cassaCtrl.text}",
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () => apriCassaDialog(context, service),
+                              child: const Text(
+                                "Modifica",
+                                style: TextStyle(
+                                  color: Color(0xFF1A73E8),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
 
               const SizedBox(height: 30),
@@ -132,9 +157,11 @@ class HomeEntrateUscitePage extends StatelessWidget {
                     }
 
                     final lista = snapshot.data!;
-
+                    
                     return ListView(
-                      children: lista.map(_buildMovimentoRow).toList(),
+                      children: lista
+                        .map((m) => _buildMovimentoRow(context, m))
+                        .toList(),
                     );
                   },
                 ),
@@ -181,12 +208,22 @@ class HomeEntrateUscitePage extends StatelessWidget {
             flex: 2,
             child: Text("Saldo", style: TextStyle(fontWeight: FontWeight.w600)),
           ),
+          Expanded( 
+            flex: 2,
+            child: Text(""),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(""),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMovimentoRow(Movimento m) {
+  Widget _buildMovimentoRow(BuildContext context, Movimento m) {
+    final dataFormattata = DateFormat('dd-MM-yyyy').format(m.data);
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       margin: const EdgeInsets.only(bottom: 8),
@@ -196,16 +233,60 @@ class HomeEntrateUscitePage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(flex: 2, child: Text(m.data.toString())),
+          Expanded(flex: 2, child: Text(dataFormattata)),
           Expanded(flex: 4, child: Text(m.descrizione)),
-          Expanded(
+          Expanded( // entrate
             flex: 2,
-            child: Text("€ ${m.entrata}"),
+            // child: Text("€ ${m.entrata}"),
+            child: Text(
+              (m.entrata ? "€ ${m.importo.toStringAsFixed(2)}" : ""),
+              style: TextStyle(
+                color: Colors.green,
+                //fontSize: 18,
+              ),
+            ),
           ),
-          Expanded(flex: 2, child: Text(m.importo.toString())),
+          Expanded( // uscite
+            flex: 2, 
+            child: Text(
+              (m.entrata ? "" :  "€ ${m.importo.toStringAsFixed(2)}"),
+              style: TextStyle(
+                color: Colors.red,
+                //fontSize: 18,
+              ),
+            ),
+            
+            ),
           // Expanded(flex: 2, child: Text(m.uscita != null ? "€ ${m.uscita}" : "-")),
           Expanded(flex: 2, child: Text("€ 0")),
           // Expanded(flex: 2, child: Text("€ ${m.saldo.toStringAsFixed(2)}")),
+          // ✏️ ICONA delete
+          Expanded(flex: 2, child:
+            IconButton(
+              icon: const Icon(Icons.delete, size: 20),
+              hoverColor: Colors.transparent,
+              tooltip: "Elimina",
+              onPressed: () {
+                service.rimuovi(m.id);
+                // apriModificaMovimentoDialog(context, m);
+              },
+            ),
+          ),
+          // ✏️ ICONA MODIFICA
+          Expanded(flex: 2, child:
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20),
+              hoverColor: Colors.transparent,
+              tooltip: "Modifica",
+              onPressed: () async {
+                // apriModificaMovimentoDialog(context, m);
+                final movimentoId = service.trovaPerId(m.id);
+                if (movimentoId != null) {
+                  apriNuovaTransazioneDialog(context, service, movimento: await movimentoId);
+                }
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -256,30 +337,61 @@ class HomeEntrateUscitePage extends StatelessWidget {
   //   );
   // }
 
-  void apriNuovaTransazioneDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          insetPadding: const EdgeInsets.all(32), // distanza dai bordi esterni
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 380, // LARGHEZZA FISSA
-              minWidth: 380,
-              maxHeight: 650, // non cresce troppo
-            ),
-            child: const NuovaTransazioneDialog(),
-          ),
-        );
-      },
-    );
-  }
+  // void apriNuovaTransazioneDialog(BuildContext context, MovimentiService service, [Future<Movimento?>? movimentoId]) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true,
+  //     builder: (context) {
+  //       return Dialog(
+  //         insetPadding: const EdgeInsets.all(32), // distanza dai bordi esterni
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(20),
+  //         ),
+  //         child: ConstrainedBox(
+  //           constraints: const BoxConstraints(
+  //             maxWidth: 380, // LARGHEZZA FISSA
+  //             minWidth: 380,
+  //             maxHeight: 650, // non cresce troppo
+  //           ),
+  //           child: NuovaTransazioneDialog(service: service, movimentoId),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  void apriCassaDialog(BuildContext context) {
+  void apriNuovaTransazioneDialog(
+  BuildContext context,
+  MovimentiService service, {
+  Movimento? movimento, // null = nuova, non-null = modifica
+}) {
+  showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (context) {
+      return Dialog(
+        insetPadding: const EdgeInsets.all(32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 380,
+            minWidth: 380,
+            maxHeight: 650,
+          ),
+          child: NuovaTransazioneDialog(
+            service: service,
+            movimento: movimento,
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+  void apriCassaDialog(BuildContext context, MovimentiService service) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -295,7 +407,7 @@ class HomeEntrateUscitePage extends StatelessWidget {
               minWidth: 380,
               maxHeight: 650, // non cresce troppo
             ),
-            child: const CassaDialog(),
+            child: CassaDialog(service: service),
           ),
         );
       },

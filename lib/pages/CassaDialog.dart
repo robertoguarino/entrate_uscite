@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../models/movimento.dart';
+import '../services/movimenti_service.dart';
 
 class CassaDialog extends StatefulWidget {
-  const CassaDialog({super.key});
+  
+  final MovimentiService service;
+  const CassaDialog({super.key, required this.service});
 
   @override
   State<CassaDialog> createState() => _CassaDialogState();
@@ -12,8 +16,10 @@ class _CassaDialogState extends State<CassaDialog> {
   DateTime data = DateTime.now();
   bool isEntrata = true;
 
-  final descrizioneCtrl = TextEditingController();
   final importoCtrl = TextEditingController(text: "0.00");
+  bool _prefillDone = false;
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +48,70 @@ class _CassaDialogState extends State<CassaDialog> {
           ),
 
           const SizedBox(height: 24),
+
+          // leggo da firebase l'importo della cassa
+          StreamBuilder<Movimento?>(
+            stream: widget.service.streamCassa(), // deve leggere doc('cassa')
+            builder: (context, snapshot) {
+              final cassa = snapshot.data;
+
+              // ✅ Precompila UNA SOLA VOLTA quando arriva la cassa
+              if (!_prefillDone && cassa != null) {
+                _prefillDone = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  setState(() {
+                    data = cassa.data;
+                    isEntrata = cassa.entrata;
+                    importoCtrl.text = cassa.importo.toStringAsFixed(2);
+                  });
+                });
+              }
+
+              return const SizedBox.shrink();
+
+              // puoi mostrare opzionalmente un “riassunto”
+              // if (snapshot.connectionState == ConnectionState.waiting) {
+              //   return const Padding(
+              //     padding: EdgeInsets.only(bottom: 12),
+              //     child: Center(child: CircularProgressIndicator()),
+              //   );
+              // }
+
+              // if (cassa == null) {
+              //   return const Padding(
+              //     padding: EdgeInsets.only(bottom: 12),
+              //     child: Text("Cassa non impostata", style: TextStyle(color: Colors.black54)),
+              //   );
+              // }
+
+             
+
+              // return Container(
+              //   margin: const EdgeInsets.only(bottom: 12),
+              //   padding: const EdgeInsets.all(12),
+              //   decoration: BoxDecoration(
+              //     color: const Color(0xFFF1F6FF),
+              //     borderRadius: BorderRadius.circular(12),
+              //     border: Border.all(color: Colors.black12),
+              //   ),
+              //   child: Row(
+              //     children: [
+              //       Expanded(flex: 2, child: Text(DateFormat("dd/MM/yyyy").format(cassa.data))),
+              //       Expanded(flex: 4, child: Text("Cassa", style: const TextStyle(fontWeight: FontWeight.w600))),
+              //       Expanded(
+              //         flex: 3,
+              //         child: Align(
+              //           alignment: Alignment.centerRight,
+              //           child: Text("€ ${cassa.importo.toStringAsFixed(2)}"),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // );
+            },
+          ),
+
 
           // DATA
           const Text(
@@ -150,24 +220,6 @@ class _CassaDialogState extends State<CassaDialog> {
 
           const SizedBox(height: 22),
 
-          // DESCRIZIONE
-          // const Text(
-          //   "Descrizione",
-          //   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          // ),
-          // const SizedBox(height: 8),
-          // TextField(
-          //   controller: descrizioneCtrl,
-          //   decoration: InputDecoration(
-          //     hintText: "Es: Vendita prodotto, Acquisto materiali...",
-          //     border: OutlineInputBorder(
-          //       borderRadius: BorderRadius.circular(12),
-          //     ),
-          //   ),
-          // ),
-
-          // const SizedBox(height: 22),
-
           // IMPORTO
           const Text(
             "Importo (€)",
@@ -214,9 +266,21 @@ class _CassaDialogState extends State<CassaDialog> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   // TODO: salva su Firestore
-                  print("p");
+                  final importo = double.tryParse(importoCtrl.text.replaceAll(',', '.')) ?? 0;
+
+                  final nuovo = Movimento(
+                    id: 'cassa', // fisso
+                    descrizione: "Cassa",
+                    importo: importo,
+                    data: data,
+                    entrata: isEntrata,
+                    categoria: "cassa",
+                  );
+
+                  //print(nuovo.toMap());
+                  await widget.service.aggiungi(nuovo);
                   Navigator.pop(context);
                 },
                 child: const Text(
